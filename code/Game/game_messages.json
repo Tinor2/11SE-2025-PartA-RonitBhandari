@@ -1,0 +1,83 @@
+{
+  "locations": {
+    "maintenance_tunnels": {
+      "name": "MAINTENANCE TUNNELS",
+      "initial_description": "Flickering lights reveal a sparking droid blocking the east tunnel.",
+      "after_tool_pickup": "The droid whirs weakly as you raise the tool.",
+      "after_droid_fix": "The corridor to the Docking Bay is now clear."
+    },
+    "docking_bay": {
+      "name": "DOCKING BAY",
+      "initial_description": "Debris floats with no gravity, near a shattered window.",
+      "after_gravity_restore": "The escape pod hatch glows green - Almost there.",
+      "final_state": "The escape pod is ready for launch!"
+    },
+    "launch_pad": {
+      "name": "LAUNCH PAD",
+      "description": "The escape pod is ready to launch!"
+    }
+  },
+  "items": {
+    "diagnostic_tool": {
+      "name": "Diagnostic Tool",
+      "description": "A handheld device for repairing electronic systems.",
+      "pickup_message": "You grab the diagnostic tool.",
+      "use_message": "You use the diagnostic tool on the droid."
+    },
+    "energy_crystal": {
+      "name": "Energy Crystal",
+      "description": "A glowing crystal pulsing with energy.",
+      "pickup_message": "The crystal vibrates in your palm. You drop to the ground as the gravity resets!"
+    }
+  },
+  "obstacles": {
+    "droid": {
+      "name": "Malfunctioning Droid",
+      "blocked_message": "The droid SHOVES you back!",
+      "fixed_message": "Droid reboots! It salutes and shuffles aside.",
+      "hint": "use tool to fix it"
+    },
+    "gravity": {
+      "name": "Zero Gravity",
+      "description": "The escape pod's hatch is lodged shut, thanks to the broken gravity generators"
+    }
+  },
+  "actions": {
+    "pickup_tool": {
+      "success": "You grab the diagnostic tool."
+    },
+    "fix_droid": {
+      "success": "Droid reboots! It salutes and shuffles aside."
+    },
+    "pickup_crystal": {
+      "success": "The crystal vibrates in your palm. You drop to the ground as the gravity resets!"
+    },
+    "win": {
+      "success": "🚀 MISSION COMPLETE!",
+      "final_message": "Orbital Station saved. Well done, Engineer."
+    }
+  },
+  "ui": {
+    "exits": "EXITS",
+    "items": "ITEMS",
+    "obstacles": "OBSTACLE",
+    "hint": "HINT",
+    "no_items": "~No items are available~",
+    "no_obstacles": "~No obstacles~"
+  },
+  "commands": {
+    "help": {
+      "pickup": "pick up [item] - Collect an item",
+      "use": "use [item] - Use an item from your inventory",
+      "move": "move [direction] - Move in the specified direction",
+      "look": "look - Examine your current location",
+      "inventory": "inventory - View your carried items",
+      "win": "win - Launch the escape pod (only at launch pad)"
+    },
+    "invalid": "I don't understand that command. Type 'help' for available commands.",
+    "cant_do_that": "You can't do that here.",
+    "item_not_found": "You don't see that item here.",
+    "exit_blocked": "You can't go that way.",
+    "game_complete": "Thanks for playing!"
+  }
+}

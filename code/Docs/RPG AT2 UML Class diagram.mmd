@@ -1,0 +1,78 @@
+%%https://www.mermaidchart.com/app/projects/47094d90-774a-4ae6-93a1-2cb529246fc4/diagrams/99d1ef36-488e-4133-bc3e-c1d843bf7947/share/invite/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkb2N1bWVudElEIjoiOTlkMWVmMzYtNDg4ZS00MTMzLWJjM2UtYzFkODQzYmY3OTQ3IiwiYWNjZXNzIjoiRWRpdCIsImlhdCI6MTc0OTk0OTU5Mn0.uazLs_2hfcVtrlq28p2kLkWsVvMLcLUdjSNnbZE1bQA
+
+classDiagram
+    class StationItem {
+        <<abstract>>
+        -_name
+        -_description
+        +examine()*
+    }
+
+    class DiagnosticTool {
+        +examine()
+    }
+
+    class EnergyCrystal {
+        +examine()
+    }
+
+    class Location {
+        -name
+        -description
+        -exits
+        -has_tool
+        -has_crystal
+        -droid_present
+        +__init__()
+        +add_exit(direction, other_location)
+        +describe()
+        +remove_tool()
+        +remove_crystal()
+        +set_droid_present(flag)
+    }
+
+    class DamagedMaintenanceDroid {
+        -blocking
+        +__init__()
+        +repair()
+        +is_blocking()
+    }
+
+    class Player {
+        -current_location
+        -has_tool
+        -has_crystal
+        -score
+        -hazard_count
+        +__init__(starting_location)
+        +move(direction)
+        +pick_up_tool()
+        +use_tool_on_droid()
+        +pick_up_crystal()
+        +get_status()
+    }
+
+    class GameController {
+        -maintenance_tunnels
+        -docking_bay
+        -droid
+        -player
+        -diagnostic_tool
+        -energy_crystal
+        +__init__()
+        +setup_world()
+        +start_game()
+        +process_input(command)
+        +check_win_condition()
+    }
+
+    StationItem <|-- DiagnosticTool
+    StationItem <|-- EnergyCrystal
+    Location "1" *-- "0..1" DamagedMaintenanceDroid
+    Player "1" --> "1" Location
+    GameController "1" *-- "2" Location
+    GameController "1" *-- "1" DamagedMaintenanceDroid
+    GameController "1" *-- "1" Player
+    GameController "1" *-- "1" DiagnosticTool
+    GameController "1" *-- "1" EnergyCrystal
+    Player ..> DamagedMaintenanceDroid : uses
