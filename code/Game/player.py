@@ -1,4 +1,4 @@
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List, Dict, Any
 from location import Location
 from damaged_droid import DamagedMaintenanceDroid
 
@@ -18,8 +18,7 @@ class Player:
             starting_location: The initial location where the player starts
         """
         self.current_location = starting_location
-        self.has_tool = False
-        self.has_crystal = False
+        self.inventory: List[str] = []
         self.score = 0
         self.hazard_count = 0
         self._max_hazards = 10  # Maximum hazards before game over
@@ -44,82 +43,71 @@ class Player:
         
         next_location = self.current_location.exits[direction]
         
-        # Check for blocking droid in the next location
-        if hasattr(next_location, 'droid_present') and next_location.droid_present and next_location.droid.is_blocking():
+        # Check for blocking droid in the current location
+        if (hasattr(self.current_location, 'droid_present') and 
+            self.current_location.droid_present and 
+            self.current_location.droid and 
+            self.current_location.droid.is_blocking() and
+            hasattr(self.current_location, 'exits') and
+            direction in self.current_location.exits and
+            self.current_location.exits[direction].name == 'Docking Bay'):
+            
             self.hazard_count += 1
             return False, f"The droid blocks your path! (Hazards: {self.hazard_count})"
         
         # Move to the new location
-        previous_location = self.current_location
         self.current_location = next_location
-        return True, f"You move {direction} from {previous_location.name} to {self.current_location.name}."
+        return True, f"You move {direction} to the {self.current_location.name}."
     
-    def pick_up_tool(self) -> Tuple[bool, str]:
+    def use(self, item_name: str) -> Tuple[bool, str]:
         """
-        Attempt to pick up the diagnostic tool from the current location.
-        
-        Returns:
-            Tuple containing:
-                - bool: True if tool was picked up, False otherwise
-                - str: A message describing the result
-        """
-        if self.has_tool:
-            return False, "You already have the tool."
-        
-        if not self.current_location.has_tool:
-            return False, "There is no tool here to pick up."
-        
-        self.current_location.remove_tool()
-        self.has_tool = True
-        self.score += 10
-        return True, "You pick up the diagnostic tool. (+10)"
-    
-    def use_tool_on_droid(self, droid: DamagedMaintenanceDroid = None) -> Tuple[bool, str]:
-        """
-        Attempt to use the diagnostic tool on a droid.
+        Attempt to use an item from the player's inventory.
         
         Args:
-            droid: The droid to use the tool on (optional, will use current location's droid if None)
+            item_name: Name of the item to use
             
         Returns:
-            Tuple containing:
-                - bool: True if the tool was used successfully, False otherwise
-                - str: A message describing the result
+            Tuple of (success, message)
         """
-        if not self.has_tool:
-            return False, "You don't have any tool to use."
+        item_name = item_name.lower()
         
-        # Use the provided droid or the one in the current location
-        target_droid = droid
-        if target_droid is None and hasattr(self.current_location, 'droid_present') and self.current_location.droid_present:
-            target_droid = self.current_location.droid
-        
-        if not target_droid or not hasattr(target_droid, 'is_blocking') or not target_droid.is_blocking():
-            return False, "There's nothing to use the tool on here."
-        
-        message = target_droid.repair()
-        self.score += 20
-        return True, f"{message} (+20)"
+        # Check for diagnostic tool
+        if 'tool' in item_name and 'diagnostic_tool' in self.inventory:
+            if hasattr(self.current_location, 'droid') and self.current_location.droid:
+                result = self.current_location.droid.repair()
+                self.score += 20
+                return True, result
+            return False, "There's nothing to use the diagnostic tool on here."
+            
+        return False, f"You don't have a {item_name} in your inventory."
     
-    def pick_up_crystal(self) -> Tuple[bool, str]:
+    def pick_up(self, item_name: str) -> Tuple[bool, str]:
         """
-        Attempt to pick up the energy crystal from the current location.
+        Attempt to pick up an item from the current location.
         
+        Args:
+            item_name: Name of the item to pick up
+            
         Returns:
-            Tuple containing:
-                - bool: True if crystal was picked up, False otherwise
-                - str: A message describing the result
+            Tuple of (success, message)
         """
-        if self.has_crystal:
-            return False, "You already have the crystal."
+        item_name = item_name.lower()
         
-        if not self.current_location.has_crystal:
-            return False, "There is no crystal here to pick up."
-        
-        self.current_location.remove_crystal()
-        self.has_crystal = True
-        self.score += 50
-        return True, "You pick up the energy crystal. It vibrates in your hand! (+50)"
+        # Check for diagnostic tool
+        if 'tool' in item_name and hasattr(self.current_location, 'has_tool') and self.current_location.has_tool:
+            self.inventory.append('diagnostic_tool')
+            self.current_location.has_tool = False
+            self.score += 10
+            return True, "You pick up the diagnostic tool."
+            
+        # Check for energy crystal
+        if 'crystal' in item_name and hasattr(self.current_location, 'has_crystal') and self.current_location.has_crystal:
+            self.inventory.append('energy_crystal')
+            self.current_location.has_crystal = False
+            self.score += 50
+            return True, "You pick up the energy crystal."
+            
+        return False, f"You don't see a {item_name} here."
     
     def get_status(self) -> str:
         """
