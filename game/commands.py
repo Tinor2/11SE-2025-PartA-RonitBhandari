@@ -5,10 +5,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, Type, Optional, List
 from dataclasses import dataclass
 
-try:
-    from .utils import get_text
-except ImportError:
-    from utils import get_text
+from utils import get_text
 
 @dataclass
 class CommandResult:
@@ -169,10 +166,34 @@ class QuitCommand(Command):
     def get_help_text(self) -> str:
         return get_text('ui.help_quit')
 
+
+class WinCommand(Command):
+    """Command for winning the game."""
+    
+    def execute(self, player, *args) -> CommandResult:
+        # Check if player is in the escape pod with the crystal
+        if (hasattr(player.location, 'is_escape_pod') and 
+            player.location.is_escape_pod and
+            any(isinstance(item, EnergyCrystal) for item in player.inventory)):
+            return CommandResult(
+                success=True,
+                message=get_text('ui.you_win').format(score=player.score + 100),  # Bonus points for winning
+                score_change=100,
+                end_game=True
+            )
+        return CommandResult(
+            success=False,
+            message=get_text('ui.cant_win_yet')
+        )
+    
+    def get_help_text(self) -> str:
+        return get_text('ui.help_win')
+
 class CommandRegistry:
     """Manages available commands and their execution."""
     
     def __init__(self):
+        # Initialize all commands
         self.commands: Dict[str, Command] = {
             'go': MoveCommand(),
             'take': TakeCommand(),
@@ -180,16 +201,24 @@ class CommandRegistry:
             'examine': ExamineCommand(),
             'inventory': InventoryCommand(),
             'help': HelpCommand(self),
-            'quit': QuitCommand()
+            'quit': QuitCommand(),
+            'win': WinCommand()
         }
         
-        # Add aliases
+        # Add movement aliases
         self.commands['north'] = self.commands['go']
         self.commands['south'] = self.commands['go']
         self.commands['east'] = self.commands['go']
         self.commands['west'] = self.commands['go']
+        
+        # Add other aliases
         self.commands['get'] = self.commands['take']
         self.commands['look'] = self.commands['examine']
+        self.commands['exit'] = self.commands['quit']
+        self.commands['q'] = self.commands['quit']
+        self.commands['h'] = self.commands['help']
+        self.commands['i'] = self.commands['inventory']
+        self.commands['l'] = self.commands['look']
     
     def execute_command(self, command_str: str, player) -> CommandResult:
         """Parse and execute a command string."""

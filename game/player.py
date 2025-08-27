@@ -2,23 +2,11 @@
 Player class for the Orbital Station Escape game.
 Handles player state including inventory, location, and game interactions.
 """
-from typing import Dict, List, Optional, TYPE_CHECKING
+from typing import Dict, List, Optional
 
-try:
-    from .items import Item, DiagnosticTool, EnergyCrystal
-    from .utils import get_text
-except ImportError:
-    from items import Item, DiagnosticTool, EnergyCrystal
-    from utils import get_text
-
-if TYPE_CHECKING:
-    from .locations import Location
-else:
-    # For testing when run directly
-    try:
-        from .locations import Location
-    except ImportError:
-        from locations import Location
+from items import Item, DiagnosticTool, EnergyCrystal
+from utils import get_text
+from locations import Location
 
 class Player:
     """
@@ -36,6 +24,7 @@ class Player:
         self.score = 0
         self.hazards = 0
         self.has_escaped = False
+        self.used_tool_on_droid = False
 
     def move(self, direction: str) -> str:
         """
@@ -86,12 +75,13 @@ class Player:
             
         return get_text('ui.item_not_here')
 
-    def use_item(self, item_name: str) -> str:
+    def use_item(self, item_name: str, target: str = None) -> str:
         """
-        Use an item from the inventory.
+        Use an item from the player's inventory.
         
         Args:
             item_name: The name of the item to use
+            target: Optional target of the item usage
             
         Returns:
             A message describing the result of using the item
@@ -100,18 +90,37 @@ class Player:
         if not item:
             return get_text('ui.item_not_found')
             
+        # Handle specific item interactions
         if isinstance(item, DiagnosticTool):
-            if self.current_location.droid_present:
-                self.current_location.set_droid_present(False)
-                self.score += 20
-                return get_text('game.droid_repaired')
-            return get_text('game.nothing_to_repair')
-            
+            if target and 'droid' in target.lower():
+                if self.current_location.droid_present:
+                    self.current_location.droid_present = False
+                    self.used_tool_on_droid = True
+                    self.score += 20
+                    return get_text('game.droid_repaired')
+                else:
+                    return get_text('game.no_droid_here')
+            return get_text('game.what_to_repair')
+        
         if isinstance(item, EnergyCrystal):
-            # Logic for using the energy crystal (e.g., powering the escape pod)
-            return get_text('game.cant_use_crystal')
-            
-        return get_text('ui.cant_use_item', item=item._name)
+            if target and 'pod' in target.lower():
+                if hasattr(self.current_location, 'is_escape_pod') and self.current_location.is_escape_pod:
+                    self.has_escaped = True
+                    self.score += 100
+                    return get_text('game.escape_success')
+                else:
+                    return get_text('game.no_escape_pod_here')
+            return get_text('game.what_to_power')
+                
+        return get_text('game.cant_use_item')
+
+    def add_score(self, points: int) -> None:
+        """Add points to the player's score."""
+        self.score += points
+
+    def add_hazard(self) -> None:
+        """Increment the hazard counter."""
+        self.hazards += 1
 
     def get_item(self, item_name: str) -> Optional[Item]:
         """

@@ -1,9 +1,5 @@
 from typing import Dict, List, Optional
-
-try:
-    from .utils import get_text
-except ImportError:
-    from utils import get_text
+from utils import get_text
 
 
 class Location:
@@ -21,6 +17,7 @@ class Location:
         self.has_tool = False
         self.has_crystal = False
         self.droid_present = False
+        self.items = []  # List to store items in this location
     
     def add_exit(self, direction: str, other_location: 'Location') -> None:
         """
@@ -32,6 +29,34 @@ class Location:
         """
         self.exits[direction.lower()] = other_location
     
+    def add_item(self, item_type: str) -> None:
+        """
+        Add an item to this location.
+        
+        Args:
+            item_type: Type of item to add ('tool', 'crystal', or 'droid')
+        """
+        if item_type == 'tool':
+            self.has_tool = True
+        elif item_type == 'crystal':
+            self.has_crystal = True
+        elif item_type == 'droid':
+            self.droid_present = True
+
+    def remove_item(self, item_type: str) -> None:
+        """
+        Remove an item from this location.
+        
+        Args:
+            item_type: Type of item to remove ('tool', 'crystal', or 'droid')
+        """
+        if item_type == 'tool':
+            self.has_tool = False
+        elif item_type == 'crystal':
+            self.has_crystal = False
+        elif item_type == 'droid':
+            self.droid_present = False
+
     def describe(self) -> str:
         """
         Return a description of this location.

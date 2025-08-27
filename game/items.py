@@ -1,8 +1,5 @@
 from abc import ABC, abstractmethod
-try:
-    from .utils import get_item_data
-except ImportError:
-    from utils import get_item_data
+from utils import get_item_data
 
 class Item(ABC):
     """

@@ -5,16 +5,16 @@ Orbital Station Escape - Main Entry Point
 A text-based adventure game where you must escape from a damaged space station.
 """
 import sys
-import os
 
 def main():
     """Main entry point for the game."""
     try:
-        from game_loop import main as game_main
+        from game.game_loop import main as game_main
         game_main()
     except ImportError as e:
         print(f"Error: {e}")
-        print("Could not start the game. Make sure all required modules are in the same directory.")
+        print("Could not start the game. Make sure to run this from the project root directory.")
+        print("Try: python main.py")
         sys.exit(1)
     except KeyboardInterrupt:
         print("\nGame terminated by user.")
