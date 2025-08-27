@@ -1,0 +1,79 @@
+{
+    "items": {
+        "diagnostic_tool": {
+            "name": "Diagnostic Tool",
+            "description": "A handheld device for repairing electronic systems.",
+            "examine": "A small, handheld device with blinking lights. It can be used to repair damaged electronics."
+        },
+        "energy_crystal": {
+            "name": "Energy Crystal",
+            "description": "A glowing crystal that emits a soft blue light.",
+            "examine": "A pulsating blue crystal. It feels warm to the touch and hums with energy."
+        }
+    },
+    "ui": {
+        "welcome": "Welcome to Orbital Station Escape!",
+        "help": "Available commands:",
+        "invalid_command": "I don't understand that command. Type 'help' for a list of commands.",
+        "empty_command": "Please enter a command.",
+        "goodbye": "Thanks for playing! Goodbye.",
+        "inventory_empty": "You're not carrying anything.",
+        "inventory_items": "You are carrying: {items}",
+        "move_where": "Move where?",
+        "take_what": "Take what?",
+        "use_what": "Use what?",
+        "item_not_found": "You don't have that item.",
+        "cant_use_item": "You can't use the {item} right now.",
+        "item_not_here": "You don't see that here.",
+        "no_exit": "You can't go that way.",
+        "item_seen": "You see a {item} here.",
+        "item_not_seen": "You don't see a {item} here.",
+        "location_header": "{name}\n{divider}",
+        "help_move": "Move in a direction (e.g., 'north', 'east', etc.)",
+        "help_take": "Pick up an item from the current location",
+        "help_use": "Use an item from your inventory",
+        "help_examine": "Examine an item or your current location",
+        "help_inventory": "View your inventory",
+        "help_help": "Show this help message",
+        "help_quit": "Quit the game",
+        "help_header": "Available commands:"
+    },
+    "game": {
+        "droid_blocking": "The droid blocks your path! It seems to be malfunctioning. (Hazard +1)",
+        "droid_repaired": "You use the diagnostic tool on the droid. It beeps happily and moves aside! (+20 points)",
+        "nothing_to_repair": "There's nothing here to use the diagnostic tool on.",
+        "tool_taken": "You take the diagnostic tool. (+10 points)",
+        "crystal_taken": "You take the energy crystal. (+15 points)",
+        "escape_success": "You insert the energy crystal into the escape pod. The systems come online! You quickly strap in and launch, just as the station begins to break apart. Congratulations, you've escaped! (+100 points)",
+        "escape_failure": "You can't escape without the energy crystal to power the escape pod!",
+        "location_items": "\nYou see: {items}.",
+        "location_exits": "\nExits: {exits}"
+    },
+    "test_messages": {
+        "player_created": "✓ Player created at {location}",
+        "test_moved_to": "Now in: {location} (expected: {expected})",
+        "test_item_added": "- Added item to inventory: {item}",
+        "test_has_item": "- Has item: {result} (expected: {expected})",
+        "test_get_item": "- Get item: {result} (expected: {expected})",
+        "test_score": "- Current score: {score} (expected: {expected})",
+        "test_completed": "✓ All {test_name} tests completed!",
+        "commands_test_start": "\n=== Testing Command System ===",
+        "testing_help": "\nTesting help command:",
+        "help_contains": "Available commands",
+        "help_result": "- Help command contains '{expected}': {contains}",
+        "testing_movement": "\nTesting move command:",
+        "move_result": "- Move to invalid exit: {result} (expected: {expected})",
+        "testing_examine": "\nTesting examine command:",
+        "examine_result": "- Examine room: {preview}... (should show room description)",
+        "testing_take": "\nTesting take command:",
+        "take_result": "- Take item: {result} ({status})",
+        "expected_success": "should be successful",
+        "testing_inventory": "\nTesting inventory command:",
+        "inventory_result": "- Inventory: {result} (should show {expected})",
+        "expected_tool": "the diagnostic tool",
+        "testing_quit": "\nTesting quit command:",
+        "quit_message": "- Quit message: {message} (expected: {expected})",
+        "quit_flag": "- End game flag: {flag} (expected: {expected})",
+        "all_tests_complete": "\n✓ All Command tests completed!"
+    }
+}

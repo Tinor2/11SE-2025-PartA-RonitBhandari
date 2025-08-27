@@ -40,39 +40,111 @@ classDiagram
 
     class Player {
         -current_location
-        -has_tool
-        -has_crystal
-        -score
-        -hazard_count
+        -inventory: List[Item]
+        -score: int
+        -hazard_count: int
         +__init__(starting_location)
-        +move(direction)
-        +pick_up_tool()
-        +use_tool_on_droid()
-        +pick_up_crystal()
-        +get_status()
+        +move(direction) str
+        +take_item(item_name) str
+        +use_item(item_name) str
+        +get_item(item_name) Optional[Item]
+        +get_inventory() List[str]
+        +add_to_inventory(item) None
+        +remove_from_inventory(item_name) None
+    }
+
+    class Command {
+        <<abstract>>
+        +execute(player, *args) CommandResult
+        +get_help_text() str
+    }
+
+    class CommandResult {
+        -success: bool
+        -message: str
+        -score_change: int
+        -end_game: bool
+        +__init__(success, message, score_change=0, end_game=False)
+    }
+
+    class CommandRegistry {
+        -commands: Dict[str, Command]
+        +__init__()
+        +execute_command(command_str, player) CommandResult
+    }
+
+    class MoveCommand {
+        +execute(player, direction) CommandResult
+        +get_help_text() str
+    }
+
+    class TakeCommand {
+        +execute(player, item_name) CommandResult
+        +get_help_text() str
+    }
+
+    class UseCommand {
+        +execute(player, item_name) CommandResult
+        +get_help_text() str
+    }
+
+    class ExamineCommand {
+        +execute(player, target) CommandResult
+        +get_help_text() str
+    }
+
+    class InventoryCommand {
+        +execute(player) CommandResult
+        +get_help_text() str
+    }
+
+    class HelpCommand {
+        -command_registry: CommandRegistry
+        +__init__(command_registry)
+        +execute(player) CommandResult
+        +get_help_text() str
+    }
+
+    class QuitCommand {
+        +execute(player) CommandResult
+        +get_help_text() str
     }
 
     class GameController {
-        -maintenance_tunnels
-        -docking_bay
-        -droid
-        -player
-        -diagnostic_tool
-        -energy_crystal
+        -command_registry: CommandRegistry
+        -player: Player
         +__init__()
-        +setup_world()
         +start_game()
-        +process_input(command)
-        +check_win_condition()
+        +process_input(command) CommandResult
     }
 
+    %% Item hierarchy
     Item <|-- DiagnosticTool
     Item <|-- EnergyCrystal
+    
+    %% Location relationships
     Location "1" *-- "0..1" DamagedMaintenanceDroid
+    
+    %% Player relationships
     Player "1" --> "1" Location
-    GameController "1" *-- "2" Location
-    GameController "1" *-- "1" DamagedMaintenanceDroid
+    Player "1" *-- "*" Item : inventory
+    
+    %% Command pattern
+    Command <|-- MoveCommand
+    Command <|-- TakeCommand
+    Command <|-- UseCommand
+    Command <|-- ExamineCommand
+    Command <|-- InventoryCommand
+    Command <|-- HelpCommand
+    Command <|-- QuitCommand
+    
+    CommandRegistry "1" *-- "*" Command : commands
+    
+    %% Game controller relationships
     GameController "1" *-- "1" Player
-    GameController "1" *-- "1" DiagnosticTool
-    GameController "1" *-- "1" EnergyCrystal
+    GameController "1" *-- "1" CommandRegistry
+    GameController "1" *-- "*" Location
+    
+    %% Other relationships
     Player ..> DamagedMaintenanceDroid : uses
+    Command ..> CommandResult : returns

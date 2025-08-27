@@ -1,103 +1,98 @@
-# Text-Based Game Development Guide
+# Orbital Station Escape - Development Guide
 
-This guide outlines the general steps to create a text-based adventure game using object-oriented programming principles in Python.
+## Project Overview
+A text-based adventure game where the player must navigate a space station, solve puzzles, and escape using an escape pod. The game features multiple locations, interactive items, and obstacles.
 
-## 1. Project Setup
-1. Create a new project directory
-2. Set up a virtual environment
-3. Create the following directory structure:
-   ```
-   game/
-   ├── main.py                # Main game loop and entry point
-   ├── player.py              # Player class and related functions
-   ├── items.py               # Item class definitions
-   ├── location.py            # Location class and world setup
-   ├── commands.py            # Command handling and processing
-   ├── game_controller.py     # Main game controller and state management
-   ├── input_parser.py        # Input parsing utilities
-   └── data/                  # Game data files
-       └── game_data.json     # Game content and configuration
-   ```
+## Current Project Structure
+```
+game/
+├── main.py                # Main game loop and entry point
+├── player.py              # Player class and state management
+├── items.py               # Item class hierarchy and implementations
+├── locations.py           # Location class and world setup
+├── utils.py               # Utility functions and game data loading
+└── data/
+    └── game_data.json     # Game content and configuration
+```
 
-This flat structure is simpler to manage and doesn't require package initialization. All Python files can import from each other directly in the same directory.
+## Development Roadmap
 
-## 2. Core Game Components
+### Phase 1: Core Game Engine (MVP)
+1. **Game State Management**
+   - [x] Implement basic game state tracking
+   - [x] Create Player class with inventory and location tracking
+   - [ ] Implement game loop with command processing
 
-### 2.1 Game World
-1. Design your game world structure
-2. Create a `Location` class to represent different areas
-3. Implement connections between locations (exits/portals)
-4. Add items, NPCs, and interactive elements
+2. **World Building**
+   - [x] Create Location class with exits and items
+   - [ ] Implement world initialization from JSON
+   - [ ] Add location descriptions and interactions
 
-### 2.2 Player System
-1. Create a `Player` class with:
-   - Current location
-   - Inventory system
-   - Health/score tracking
-   - Movement methods
+3. **Item System**
+   - [x] Create base Item class with ABC
+   - [x] Implement specific items (Diagnostic Tool, Energy Crystal)
+   - [ ] Add item interactions and effects
 
-### 2.3 Command System
-1. Implement a command parser
-2. Create a base `Command` class
-3. Implement specific command classes (e.g., `MoveCommand`, `TakeCommand`)
-4. Handle input validation and feedback
+### Phase 2: Game Mechanics
+1. **Command System**
+   - [ ] Implement command parser
+   - [ ] Add core commands:
+     - `go [direction]` - Move between locations
+     - `take [item]` - Pick up items
+     - `use [item]` - Use items in inventory
+     - `examine [item]` - Get item descriptions
+     - `inventory` - Show carried items
+     - `look` - Re-examine current location
 
-### 2.4 Abstract Base Classes (ABC)
-The `abc` module provides the infrastructure for defining abstract base classes in Python.
+2. **Puzzle Implementation**
+   - [ ] Droid repair puzzle in Maintenance Tunnels
+   - [ ] Energy Crystal collection in Docking Bay
+   - [ ] Escape pod activation sequence
 
-#### Key Concepts:
-1. **ABC (Abstract Base Class)**:
-   - A class that contains one or more abstract methods
-   - Cannot be instantiated directly
-   - Used to define a common interface for subclasses
-   - Example:
-     ```python
-     from abc import ABC, abstractmethod
-     
-     class Item(ABC):
-         @abstractmethod
-         def examine(self) -> str:
-             pass
-     ```
+3. **Scoring & Hazards**
+   - [x] Implement score tracking
+   - [x] Add hazard system
+   - [ ] Add win/lose conditions
 
-2. **@abstractmethod**:
-   - Decorator that marks a method as abstract
-   - Must be overridden by concrete subclasses
-   - Ensures all subclasses implement required methods
+### Phase 3: Polish & Refinement
+1. **User Interface**
+   - [ ] Format console output for better readability
+   - [ ] Add color and ASCII art
+   - [ ] Implement help system with command list
 
-3. **Benefits in Game Development**:
-   - Enforces consistent interfaces for game objects
-   - Makes code more maintainable and self-documenting
-   - Prevents instantiation of incomplete classes
-   - Helps catch programming errors early
+2. **Error Handling**
+   - [ ] Add input validation
+   - [ ] Implement graceful error recovery
+   - [ ] Add descriptive error messages
 
-4. **Example Usage**:
-   ```python
-   class Item(ABC):
-       def __init__(self, name: str):
-           self.name = name
-       
-       @abstractmethod
-       def use(self) -> str:
-           pass
-   ```
+3. **Testing**
+   - [ ] Unit tests for core systems
+   - [ ] Integration tests for game flow
+   - [ ] Playtesting and balancing
 
-### 2.5 Game Loop
-1. Initialize game state
-2. Create main game loop:
-   - Display current location/status
-   - Get player input
-   - Process commands
-   - Update game state
-   - Check win/lose conditions
+## Technical Implementation Details
 
-## 3. Game Content
-1. Design game narrative and story elements
-2. Create item descriptions and interactions
-3. Implement puzzles and challenges
-4. Add NPCs and dialogue systems (if applicable)
+### Game Loop Structure
+```python
+while not game_over:
+    display_current_location()
+    command = get_player_input()
+    result = process_command(command)
+    update_game_state(result)
+    check_win_conditions()
+```
 
-## 4. Save/Load System
+### Data Flow
+1. Player inputs command
+2. Command is parsed and validated
+3. Game state is updated
+4. Result is displayed to player
+5. Loop continues until win/lose condition
+
+### Save/Load System (Future)
+- Save game state to file
+- Load saved games
+- Multiple save slots
 1. Implement game state serialization
 2. Create save/load functionality
 3. Handle version control for save files
