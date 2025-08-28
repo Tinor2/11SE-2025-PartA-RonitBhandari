@@ -1,7 +1,7 @@
 %%https://www.mermaidchart.com/app/projects/47094d90-774a-4ae6-93a1-2cb529246fc4/diagrams/99d1ef36-488e-4133-bc3e-c1d843bf7947/share/invite/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkb2N1bWVudElEIjoiOTlkMWVmMzYtNDg4ZS00MTMzLWJjM2UtYzFkODQzYmY3OTQ3IiwiYWNjZXNzIjoiRWRpdCIsImlhdCI6MTc0OTk0OTU5Mn0.uazLs_2hfcVtrlq28p2kLkWsVvMLcLUdjSNnbZE1bQA
 
 classDiagram
-    class Item {
+    class StationItem {
         <<abstract>>
         -_name
         -_description
@@ -40,14 +40,14 @@ classDiagram
 
     class Player {
         -current_location
-        -inventory: List[Item]
+        -inventory: List[StationItem]
         -score: int
         -hazard_count: int
         +__init__(starting_location)
         +move(direction) str
         +take_item(item_name) str
         +use_item(item_name) str
-        +get_item(item_name) Optional[Item]
+        +get_item(item_name) Optional[StationItem]
         +get_inventory() List[str]
         +add_to_inventory(item) None
         +remove_from_inventory(item_name) None
@@ -110,16 +110,16 @@ classDiagram
         +process_input(command) CommandResult
     }
 
-    %% Item hierarchy
-    Item <|-- DiagnosticTool
-    Item <|-- EnergyCrystal
+    %% StationItem hierarchy
+    StationItem <|-- DiagnosticTool
+    StationItem <|-- EnergyCrystal
     
     %% Location relationships
     Location "1" *-- "0..1" DamagedMaintenanceDroid
     
     %% Player relationships
     Player "1" --> "1" Location
-    Player "1" *-- "*" Item : inventory
+    Player "1" *-- "*" StationItem : inventory
     
     %% Command pattern
     Command <|-- MoveCommand
