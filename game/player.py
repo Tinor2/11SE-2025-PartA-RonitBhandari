@@ -4,7 +4,7 @@ Handles player state including inventory, location, and game interactions.
 """
 from typing import Dict, List, Optional
 
-from items import Item, DiagnosticTool, EnergyCrystal
+from items import StationItem, DiagnosticTool, EnergyCrystal
 from utils import get_text
 from locations import Location
 
@@ -20,7 +20,7 @@ class Player:
             starting_location: The initial location where the player starts
         """
         self.current_location = starting_location
-        self.inventory: List[Item] = []
+        self.inventory: List[StationItem] = []
         self.score = 0
         self.hazards = 0
         self.has_escaped = False
@@ -122,7 +122,7 @@ class Player:
         """Increment the hazard counter."""
         self.hazards += 1
 
-    def get_item(self, item_name: str) -> Optional[Item]:
+    def get_item(self, item_name: str) -> Optional[StationItem]:
         """
         Get an item from the inventory by name.
         

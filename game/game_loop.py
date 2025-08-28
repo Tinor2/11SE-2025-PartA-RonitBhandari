@@ -62,35 +62,54 @@ def initialize_game() -> GameState:
 def display_location(state: GameState) -> str:
     """Generate the location description for display."""
     location = state.current_location
+    # Get the appropriate description text based on game state
+    if isinstance(location.description, dict):
+        if hasattr(location, 'droid_present') and location.droid_present:
+            description = location.description.get('initial', 'A mysterious location.')
+        else:
+            description = location.description.get('after_droid_fix', 'The corridor is now clear.')
+    else:
+        description = str(location.description)
+        
     output = [
-        f"\n{location.name}",
-        "=" * len(location.name),
-        location.description,
+        f"\n╔{'═' * (len(location.name) + 4)}╗",
+        f"║  {location.name}  ║",
+        f"╚{'═' * (len(location.name) + 4)}╝",
+        description,
         ""
     ]
     
     # Show items in the location
-    if location.items:
-        output.append("You see:")
-        for item in location.items:
-            output.append(f"- {item.name}: {item.description}")
+    if location.items and len(location.items) > 0:
+        items_text = ", ".join([str(item.name) for item in location.items])
+        output.append(f"You see: {items_text}")
     else:
         output.append("There are no items of interest here.")
     
     # Show obstacles
-    if location.droid_present:
+    if hasattr(location, 'droid_present') and location.droid_present:
         output.append("\nA damaged maintenance droid blocks the way east, sparking erratically.")
     
     # Show exits
-    exits = ", ".join(location.exits.keys())
-    output.append(f"\nExits: [{exits}]")
+    exits = ", ".join([f"[{exit}]" for exit in location.exits.keys()])
+    output.append(f"\nExits: {exits}")
     
-    return "\n".join(output)
+    # Add score and hazards
+    output.append(f"\n(SCORE: {state.score} | HAZARDS: {state.hazards})")
+    
+    # Ensure all items are strings before joining
+    return "\n".join(str(item) for item in output)
 
 
 def main():
     """Main game loop."""
+    print("╔" + "═" * 50 + "╗")
+    print("║" + " " * 50 + "║")
+    print("║" + "ORBITAL STATION ESCAPE".center(50) + "║")
+    print("║" + " " * 50 + "║")
+    print("╚" + "═" * 50 + "╝\n")
     print(get_text('ui.welcome'))
+    print("Type 'help' for a list of commands.\n")
     
     # Initialize game state
     state = initialize_game()
@@ -99,7 +118,6 @@ def main():
     while not state.game_over:
         # Display current location and status
         print(display_location(state))
-        print(f"\nScore: {state.score} | Hazards: {state.hazards}")
         
         # Get player input
         try:
@@ -109,12 +127,20 @@ def main():
             break
             
         if not command:
+            print(get_text('ui.empty_command'))
             continue
             
         # Process command
         result = state.command_registry.execute_command(command, state.player)
         if result:
-            print(result.message)
+            if result.message:
+                print("\n" + result.message)
+            
+            # Update game state if needed
+            if hasattr(result, 'update_score') and result.update_score:
+                state.score += result.update_score
+            if hasattr(result, 'add_hazard') and result.add_hazard:
+                state.hazards += 1
             
             # Check for game over conditions
             if result.end_game:
@@ -122,11 +148,20 @@ def main():
                 state.player_won = result.success
                 
                 if state.player_won:
-                    print(get_text('ui.you_win').format(score=state.score))
+                    base_score = state.score
+                    bonus = max(0, 30 - (state.hazards * 2))  # Bonus decreases with hazards
+                    final_score = base_score + bonus
+                    print("\n" + get_text('game.escape_success', 
+                                       score=final_score, 
+                                       base=base_score, 
+                                       bonus=bonus,
+                                       hazards=state.hazards))
                 else:
-                    print(get_text('ui.game_over'))
-    
-    print("\nThanks for playing Orbital Station Escape!")
+                    print("\n" + get_text('ui.game_over'))
+                    print(f"Final Score: {state.score} | Hazards: {state.hazards}")
+                
+                print("\n" + get_text('ui.goodbye'))
+                break
 
 
 if __name__ == "__main__":

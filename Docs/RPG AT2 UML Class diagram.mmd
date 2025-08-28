@@ -71,6 +71,7 @@ classDiagram
         -commands: Dict[str, Command]
         +__init__()
         +execute_command(command_str, player) CommandResult
+        +get_help_text() str
     }
 
     class MoveCommand {
@@ -78,7 +79,7 @@ classDiagram
         +get_help_text() str
     }
 
-    class TakeCommand {
+    class PickupCommand {
         +execute(player, item_name) CommandResult
         +get_help_text() str
     }
@@ -88,20 +89,11 @@ classDiagram
         +get_help_text() str
     }
 
-    class ExamineCommand {
-        +execute(player, target) CommandResult
-        +get_help_text() str
-    }
-
-    class InventoryCommand {
-        +execute(player) CommandResult
-        +get_help_text() str
-    }
 
     class HelpCommand {
         -command_registry: CommandRegistry
         +__init__(command_registry)
-        +execute(player) CommandResult
+        +execute(player, *args) CommandResult
         +get_help_text() str
     }
 
@@ -131,13 +123,10 @@ classDiagram
     
     %% Command pattern
     Command <|-- MoveCommand
-    Command <|-- TakeCommand
+    Command <|-- PickupCommand
     Command <|-- UseCommand
-    Command <|-- ExamineCommand
-    Command <|-- InventoryCommand
     Command <|-- HelpCommand
     Command <|-- QuitCommand
-    
     CommandRegistry "1" *-- "*" Command : commands
     
     %% Game controller relationships

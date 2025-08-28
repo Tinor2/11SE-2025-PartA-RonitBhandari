@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from utils import get_item_data
 
-class Item(ABC):
+class StationItem(ABC):
     """
     Abstract base class for all items in the game.
     """
@@ -26,14 +26,14 @@ class Item(ABC):
         return self._examine_text
 
 
-class DiagnosticTool(Item):
+class DiagnosticTool(StationItem):
     """
     A diagnostic tool that can be used to repair the droid.
     """
     def __init__(self) -> None:
         super().__init__("diagnostic_tool")
 
-class EnergyCrystal(Item):
+class EnergyCrystal(StationItem):
     """
     An energy crystal that powers the escape pod.
     """

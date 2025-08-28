@@ -3,12 +3,14 @@
         "diagnostic_tool": {
             "name": "Diagnostic Tool",
             "description": "A handheld device for repairing electronic systems.",
-            "examine": "A small, handheld device with blinking lights. It can be used to repair damaged electronics."
+            "examine": "A small, handheld device with blinking lights. It can be used to repair damaged electronics.",
+            "pickup": "You grab the diagnostic tool. [+10]"
         },
         "energy_crystal": {
             "name": "Energy Crystal",
             "description": "A glowing crystal that emits a soft blue light.",
-            "examine": "A pulsating blue crystal. It feels warm to the touch and hums with energy."
+            "examine": "A pulsating blue crystal lodged in the wall. It feels warm to the touch and hums with energy.",
+            "pickup": "The crystal vibrates in your palm. You drop to the ground as the gravity resets! [+50]"
         }
     },
     "ui": {
@@ -39,15 +41,34 @@
         "help_header": "Available commands:"
     },
     "game": {
-        "droid_blocking": "The droid blocks your path! It seems to be malfunctioning. (Hazard +1)",
-        "droid_repaired": "You use the diagnostic tool on the droid. It beeps happily and moves aside! (+20 points)",
+        "droid_blocking": "The droid blocks your path! (Hazards: {hazards})",
+        "droid_repaired": "Droid reboots! It salutes and shuffles aside. [+20]",
         "nothing_to_repair": "There's nothing here to use the diagnostic tool on.",
-        "tool_taken": "You take the diagnostic tool. (+10 points)",
-        "crystal_taken": "You take the energy crystal. (+15 points)",
-        "escape_success": "You insert the energy crystal into the escape pod. The systems come online! You quickly strap in and launch, just as the station begins to break apart. Congratulations, you've escaped! (+100 points)",
-        "escape_failure": "You can't escape without the energy crystal to power the escape pod!",
-        "location_items": "\nYou see: {items}.",
-        "location_exits": "\nExits: {exits}"
+        "tool_taken": "You grab the diagnostic tool. [+10]",
+        "crystal_taken": "The crystal vibrates in your palm. You drop to the ground as the gravity resets! [+50]",
+        "escape_success": "🚀 MISSION COMPLETE!\nFINAL SCORE: {score} ({base} + {bonus} bonus)\nHAZARDS ENCOUNTERED: {hazards}\n\"Orbital Station saved. Well done, Engineer.\"",
+        "escape_failure": "You can't escape yet! You need to restore power to the escape pod first.",
+        "location_items": "\n<< ITEMS: {items}",
+        "location_exits": "\n<< EXITS: {exits}",
+        "location_obstacle": "\n<< OBSTACLE: {obstacle}",
+        "location_hint": "\n<< HINT: {hint}"
+    },
+    "locations": {
+        "maintenance_tunnels": {
+            "initial": "Flickering lights reveal a sparking droid blocking the east tunnel.",
+            "after_tool_pickup": "The droid beeps angrily as you approach the exit.",
+            "after_droid_fix": "The corridor to the Docking Bay is now clear.",
+            "obstacle": "Droid beeps angrily"
+        },
+        "docking_bay": {
+            "initial": "Debris floats with no gravity, near a shattered window. An energy crystal is lodged in the wall.",
+            "after_crystal_pickup": "The escape pod hatch glows green - Almost there.",
+            "obstacle": "The escape pod's hatch is lodged shut, thanks to the broken gravity generators"
+        },
+        "launch_pad": {
+            "initial": "The escape pod is ready to launch!",
+            "hint": "Type 'win' to launch!"
+        }
     },
     "test_messages": {
         "player_created": "✓ Player created at {location}",

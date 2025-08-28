@@ -33,34 +33,34 @@ class MoveCommand(Command):
     
     def execute(self, player, direction: str = None) -> CommandResult:
         if not direction:
-            return CommandResult(False, get_text('ui.move_where'))
+            return CommandResult(False, "Move where? (e.g., 'move north', 'move east')")
             
         result = player.move(direction)
         return CommandResult(
-            success=not result.startswith(get_text('ui.no_exit')),
+            success=not result.startswith("You can't go that way"),
             message=result
         )
     
     def get_help_text(self) -> str:
-        return get_text('ui.help_move')
+        return "Move in a direction (e.g., 'move north', 'move east')"
 
-class TakeCommand(Command):
+class PickupCommand(Command):
     """Command for picking up items."""
     
     def execute(self, player, item_name: str = None) -> CommandResult:
         if not item_name:
-            return CommandResult(False, get_text('ui.take_what'))
+            return CommandResult(False, "Pickup what? (e.g., 'pickup tool')")
             
         result = player.take_item(item_name)
         score_change = 10 if "tool" in item_name.lower() else 15 if "crystal" in item_name.lower() else 0
         return CommandResult(
-            success=not result.startswith(get_text('ui.item_not_here')),
+            success=not result.startswith('You don\'t see that here'),
             message=result,
-            score_change=score_change if not result.startswith(get_text('ui.item_not_here')) else 0
+            score_change=score_change if not result.startswith('You don\'t see that here') else 0
         )
     
     def get_help_text(self) -> str:
-        return get_text('ui.help_take')
+        return "Pick up an item from the current location (e.g., 'pickup tool')"
 
 class UseCommand(Command):
     """Command for using items."""
@@ -142,16 +142,25 @@ class HelpCommand(Command):
         self.command_registry = command_registry
     
     def execute(self, player, *args) -> CommandResult:
-        help_text = [get_text('ui.help_header')]
-        for name, cmd in self.command_registry.commands.items():
-            help_text.append(f"{name}: {cmd.get_help_text()}")
+        help_text = ["Available commands:", ""]
+        commands = {
+            'move [direction]': "Move in a direction (north, south, east, west)",
+            'pickup [item]': "Pick up an item from the current location",
+            'use [item]': "Use an item from your inventory",
+            'help': "Show this help message",
+            'quit': "Quit the game"
+        }
+        
+        for cmd, desc in commands.items():
+            help_text.append(f"{cmd:15} - {desc}")
+            
         return CommandResult(
             success=True,
             message="\n".join(help_text)
         )
     
     def get_help_text(self) -> str:
-        return get_text('ui.help_help')
+        return "Show this help message"
 
 class QuitCommand(Command):
     """Command for quitting the game."""
@@ -195,30 +204,16 @@ class CommandRegistry:
     def __init__(self):
         # Initialize all commands
         self.commands: Dict[str, Command] = {
-            'go': MoveCommand(),
-            'take': TakeCommand(),
+            'move': MoveCommand(),
+            'pickup': PickupCommand(),
             'use': UseCommand(),
-            'examine': ExamineCommand(),
-            'inventory': InventoryCommand(),
             'help': HelpCommand(self),
-            'quit': QuitCommand(),
-            'win': WinCommand()
+            'quit': QuitCommand()
         }
         
-        # Add movement aliases
-        self.commands['north'] = self.commands['go']
-        self.commands['south'] = self.commands['go']
-        self.commands['east'] = self.commands['go']
-        self.commands['west'] = self.commands['go']
-        
-        # Add other aliases
-        self.commands['get'] = self.commands['take']
-        self.commands['look'] = self.commands['examine']
-        self.commands['exit'] = self.commands['quit']
+        # Add quit alias
         self.commands['q'] = self.commands['quit']
         self.commands['h'] = self.commands['help']
-        self.commands['i'] = self.commands['inventory']
-        self.commands['l'] = self.commands['look']
     
     def execute_command(self, command_str: str, player) -> CommandResult:
         """Parse and execute a command string."""
@@ -229,15 +224,18 @@ class CommandRegistry:
         cmd_name = parts[0]
         args = parts[1:] if len(parts) > 1 else []
         
+        # Check for movement command with direction
+        if cmd_name == 'move' and len(args) > 0:
+            direction = args[0]
+            if direction in ['north', 'south', 'east', 'west']:
+                return self.commands['move'].execute(player, direction)
+            return CommandResult(False, f"Invalid direction: {direction}. Use 'north', 'south', 'east', or 'west'")
+        
         if cmd_name not in self.commands:
             return CommandResult(
                 False, 
                 get_text('ui.unknown_command', command=cmd_name)
             )
-            
-        # Special case for movement commands
-        if cmd_name in ['north', 'south', 'east', 'west']:
-            return self.commands[cmd_name].execute(player, cmd_name)
             
         # Execute the command with any provided arguments
         return self.commands[cmd_name].execute(player, *args)
