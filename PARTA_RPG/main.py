@@ -15,56 +15,19 @@ def display_welcome() -> None:
 ╚══════════════════════════════════════════════════╝
 You're a technician on a space station experiencing
 multiple system failures. Navigate the station,
-collect items, and escape before it's too late!
+collect items, and escape before it's too late! 
 
 Type 'help' for a list of commands.
 """)
 
 
 def main() -> None:
-    """Main game loop."""
-    # Initialize game controller
-    game = GameController()
-    
-    # Display welcome message
+    """Entry point matching the simplified GameController interface."""
     display_welcome()
     
-    # Initial game state display
-    print("\n" + "="*50)
-    print(game.player.current_location.describe())
-    print("\nWhat would you like to do?")
-    
-    # Main game loop
-    while not game.game_over:
-        try:
-            # Get player input
-            command = input("\n>> ").strip()
-            
-            # Process the command
-            result = game.process_command(command)
-            
-            # Display the result of the command
-            if result:
-                print(f"\n{result}")
-                
-                # If game over from the command (like 'quit' or win condition)
-                if game.game_over:
-                    break
-            
-            # Show location description after each command if game is still going
-            if not game.game_over:
-                input("\nPress Enter to continue...")
-                print("\n" + "="*50)
-                print(game.player.current_location.describe())
-                print("\nWhat would you like to do?")
-                    
-        except KeyboardInterrupt:
-            print("\n\nGame interrupted. Thanks for playing!")
-            break
-        except Exception as e:
-            print(f"\nAn error occurred: {e}")
-            if input("Do you want to quit? (y/n): ").lower() == 'y':
-                break
+    game = GameController()
+    # Delegate control to GameController's internal loop
+    game.start_game()
     
     print("\nThanks for playing Orbital Station Escape!")
 

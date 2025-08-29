@@ -18,8 +18,6 @@ class StationItem(ABC):
     def examine(self) -> str:
         """Return a description of the item when examined."""
         pass
-
-
 class DiagnosticTool(StationItem):
     """A diagnostic tool used to repair maintenance droids."""
     
@@ -37,7 +35,6 @@ class DiagnosticTool(StationItem):
 
 class EnergyCrystal(StationItem):
     """An energy crystal that powers the escape pod."""
-    
     def __init__(self):
         """Initialize the energy crystal."""
         super().__init__(

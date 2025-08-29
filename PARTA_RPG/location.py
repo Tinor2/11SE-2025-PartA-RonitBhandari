@@ -21,7 +21,8 @@ class Location:
     def __init__(self, name: str, description: str, 
                  has_tool: bool = False, 
                  has_crystal: bool = False, 
-                 droid_present: bool = False):
+                 droid_present: bool = False,
+                 droid: 'DamagedMaintenanceDroid' = None):
         """Initialize the location.
         
         Args:
@@ -30,6 +31,7 @@ class Location:
             has_tool: Whether this location has a diagnostic tool.
             has_crystal: Whether this location has an energy crystal.
             droid_present: Whether the droid is present in this location.
+            droid: Reference to the droid in this location, if any.
         """
         self.name = name
         self.description = description
@@ -37,6 +39,7 @@ class Location:
         self.has_tool = has_tool
         self.has_crystal = has_crystal
         self.droid_present = droid_present
+        self.droid = droid
     
     def add_exit(self, direction: str, other_location: 'Location') -> None:
         """Add an exit to another location.
@@ -105,3 +108,5 @@ class Location:
             is_present: Whether the droid should be present.
         """
         self.droid_present = is_present
+        if not is_present:
+            self.droid = None

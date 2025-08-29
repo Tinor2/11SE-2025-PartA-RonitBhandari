@@ -1,198 +1,188 @@
 """
-Game Controller module for Orbital Station Escape.
+Game Controller module - SPECIFICATION COMPLIANT ONLY.
 
-This module manages the overall game state and handles all game commands.
+Contains ONLY the classes, attributes, and methods specified in the requirements.
+NO additional features, methods, or functionality.
 """
-from typing import Dict, Tuple, Optional, List
 from player import Player
 from location import Location
 from droid import DamagedMaintenanceDroid
+from items import DiagnosticTool, EnergyCrystal
 
 
 class GameController:
     """Manages the overall game state and coordinates game components.
     
-    This class is responsible for initializing the game world, tracking the
-    game state, and processing player commands.
+    Attributes (EXACT SPECIFICATION):
+        maintenance_tunnels: The maintenance tunnels location
+        docking_bay: The docking bay location  
+        droid: The damaged maintenance droid
+        player: The player object
+        diagnostic_tool: The diagnostic tool item
+        energy_crystal: The energy crystal item
     """
     
     def __init__(self):
-        """Initialize the game controller and set up the initial game state."""
-        self.game_over = False
-        self.game_won = False
-        self._initialize_game_world()
-        
-    def _get_status(self) -> str:
-        """Get the current status string."""
-        return f"(SCORE: {self.player.score} | HAZARDS: {self.player.hazard_count})"
+        """Build the world (all locations, the droid, the two items, and the player)."""
+        self.setup_world()
     
-    def _initialize_game_world(self) -> None:
-        """Set up the game world, locations, and initial state.
-        
-        Follows the exact locations and descriptions from the storyboard.
-        """
-        # Initialize ONLY the two specified locations
-        self.locations = {
-            'maintenance_tunnels': Location(
-                name="MAINTENANCE TUNNELS",
-                description="Flickering lights reveal a sparking droid blocking the east tunnel.",
-                has_tool=True,
-                droid_present=True
-            ),
-            'docking_bay': Location(
-                name="DOCKING BAY",
-                description=(
-                    "Debris floats with no gravity, near a shattered window.\n"
-                    "The escape pod's hatch is lodged shut, thanks to the broken gravity generators."
-                ),
-                has_crystal=True
-            )
-        }
-        
-        # Set up bidirectional exits
-        self.locations['maintenance_tunnels'].add_exit("east", self.locations['docking_bay'])
-        self.locations['docking_bay'].add_exit("west", self.locations['maintenance_tunnels'])
-        
-        # Initialize player and droid
-        self.player = Player(self.locations['maintenance_tunnels'])
+    def setup_world(self):
+        """Create two Location instances and set up the game world exactly as specified."""
+        # Instantiate the droid first
         self.droid = DamagedMaintenanceDroid()
-
-        # Track crystal state for help display
-        self.crystal_picked = False
-    
-    def process_command(self, command: str) -> str:
-        """Process a player command and return the game's response.
         
-        Args:
-            command: The raw input string from the player.
-            
-        Returns:
-            A string containing the game's response to the command.
-        """
-        if not command.strip():
-            return ""
-            
-        command = command.strip().lower()
-        parts = command.split()
-        
-        # Handle movement commands
-        if len(parts) == 2 and parts[0] == 'move' and parts[1] in ["north", "south", "east", "west"]:
-            return self._process_movement(parts[1])
-            
-        # Handle specific commands
-        if command == "pick up tool" or command == "pickup tool":
-            return self._process_pick_up_tool()
-            
-        if command == "use tool":
-            return self._process_use_tool()
-            
-        if command == "pick up crystal" or command == "pickup crystal":
-            return self._process_pick_up_crystal()
-            
-        if command == "status":
-            return self._get_status()
-
-        if command == "help":
-            return self._show_help()
-
-        if command == "win":
-            return self._process_win()
-            
-        if command in ["quit", "exit"]:
-            self.game_over = True
-            return "Thanks for playing!"
-            
-        return "I don't understand that command. Type 'help' for a list of commands."
-    
-    def _process_movement(self, direction: str) -> str:
-        """Delegate movement handling to the Player class."""
-        return self.player.move(direction)
-    
-    def _process_pick_up_tool(self) -> str:
-        """Handle picking up the diagnostic tool."""
-        if not self.player.current_location.has_tool:
-            return "There's no tool here to pick up."            
-        self.player.score += 10
-        self.player.has_tool = True
-        self.player.current_location.has_tool = False
-        return f"You grab the diagnostic tool. [+10]\n{self._get_status()}"
-    
-    def _process_use_tool(self) -> str:
-        """Handle using the diagnostic tool on the droid."""
-        if not self.player.has_tool:
-            return "You don't have a tool to use."
-            
-        current_location = self.player.current_location
-        if not hasattr(current_location, 'droid_present') or not current_location.droid_present:
-            return "There's nothing to use the tool on here."
-            
-        # Update droid status and location description
-        current_location.droid_present = False
-        self.player.score += 20
-        
-        # Update the location's description to remove the droid
-        current_location.description = (
-            "The corridor to the Docking Bay is now clear."
+        # Create two Location instances
+        self.maintenance_tunnels = Location(
+            name="Maintenance Tunnels",
+            description="Flickering lights reveal a sparking droid blocking the east tunnel.",
+            has_tool=True,
+            droid_present=True,
+            droid=self.droid
         )
         
-        return (
-            "Droid reboots! It salutes and shuffles aside. [+20]\n"
-            f"(SCORE: {self.player.score} | HAZARDS: {self.player.hazard_count})"
+        self.docking_bay = Location(
+            name="Docking Bay", 
+            description="Debris floats with no gravity, near a shattered window.",
+            has_crystal=True
         )
         
-    def _process_pick_up_crystal(self) -> str:
-        """Handle picking up the energy crystal using Player method."""
-        self.crystal_picked = True
-        # Update Docking Bay description to signal mission completion possibility
-        self.player.current_location.description = (
-            "The escape pod hatch slides open, ready for launch. Type 'win' to escape!"
-        )
-        return self.player.pick_up_crystal() + "\n(The escape pod is now ready. Type 'win' to complete your mission!)"
+        # Link the two locations
+        self.maintenance_tunnels.add_exit("east", self.docking_bay)
+        self.docking_bay.add_exit("west", self.maintenance_tunnels)
+        
+        # Instantiate one DiagnosticTool and one EnergyCrystal
+        self.diagnostic_tool = DiagnosticTool()
+        self.energy_crystal = EnergyCrystal()
+        
+        # Instantiate a Player whose starting location is Maintenance Tunnels
+        self.player = Player(self.maintenance_tunnels)
+        
+        # Track last command for win condition
+        self.last_command = ""
     
-    def _process_win(self) -> str:
-        """Handle the win command when in Docking Bay with crystal."""
-        if self.player.current_location.name.upper() != "DOCKING BAY":
-            return "You can't win from here! You need to be at the Docking Bay."
-        if not self.player.has_crystal:
-            return "You need the energy crystal to power the escape pod!"
-        self.game_over = True
-        self.game_won = True
-        self.player.score += 30  # mission completion bonus
-        return (
-            " MISSION COMPLETE!\n"
-            f"FINAL SCORE: {self.player.score}\n"
-            f"HAZARDS ENCOUNTERED: {self.player.hazard_count}\n"
-            "\"Orbital Station saved. Well done, Engineer.\""
-        )
+    def start_game(self):
+        """Print a welcome message and run the main game loop."""
+        print("Welcome to Orbital Station Escape!")
         
-    def _show_help(self) -> str:
-        """Return a help message with available commands."""
-        base = (
-            "Available Commands:\n"
-            "  move <direction> - Move north, south, east, or west\n"
-            "  pick up tool / pickup tool - Pick up the diagnostic tool\n"
-            "  use tool - Use the diagnostic tool on the droid\n"
-            "  pick up crystal / pickup crystal - Pick up the energy crystal\n"
-            "  status - Show score and hazards\n"
-        )
-        if self.crystal_picked:
-            base += "  win - Complete the mission\n"
-        base += "  quit/exit - Quit the game\n"
-        return base
+        try:
+            while True:
+                # Show current_location.describe()
+                print("\n" + self.player.current_location.describe())
+                
+                try:
+                    # Read a single line of input
+                    command = input("\n> ").strip()
+                    
+                    # Call process_input(command)
+                    self.process_input(command)
+                    
+                    # Call check_win_condition(). If True, break and end.
+                    if self.check_win_condition():
+                        break
+                        
+                except KeyboardInterrupt:
+                    # Handle Ctrl+C during command input
+                    print("\n\nUse 'quit' or 'exit' to leave the game, or 'help' for commands.")
+                    
+        except KeyboardInterrupt:
+            # Handle Ctrl+C during game loop
+            print("\n\nThanks for playing!")
+            exit(0)
     
-    def check_game_state(self) -> Tuple[bool, str]:
-        """Check if the game has been won or lost.
+    def process_input(self, command):
+        """Recognise exactly these commands (case-insensitive) and call appropriate methods."""
+        command = command.lower().strip()
+        self.last_command = command
         
-        Returns:
-            A tuple of (game_over, message) where game_over is a boolean
-            indicating if the game has ended, and message is a string
-            describing the end game state.
-        """
-        if self.player.hazards_encountered >= 3:
-            return (True, "TOO MANY HAZARDS! The station's systems fail catastrophically.\nGAME OVER!")
+        # Parse move command
+        if command.startswith("move "):
+            direction = command[5:].strip()
+            result = self.player.move(direction)
+            if result == "success":
+                print("You moved successfully.")
+                self._show_status()
+            elif result == "failure - no exit":
+                print("You can't go that way.")
+                self._show_status()
+            elif result == "failure - droid blocking":
+                print("The droid blocks your path!")
+                self._show_status()
+        
+        # "pick up tool" → call player.pick_up_tool() and print success or "no tool here."
+        elif command == "pick up tool":
+            result = self.player.pick_up_tool()
+            if result == "success":
+                print("Tool picked up successfully.")
+            else:
+                print("No tool here.")
+            self._show_status()
+        
+        # "use tool" → call player.use_tool_on_droid() and print success or "nothing happens."  
+        elif command == "use tool":
+            result = self.player.use_tool_on_droid()
+            if result == "success":
+                print("Tool used successfully.")
+            else:
+                print("Nothing happens.")
+            self._show_status()
+        
+        # "pick up crystal" → call player.pick_up_crystal() and print success or "no crystal here."
+        elif command == "pick up crystal":
+            result = self.player.pick_up_crystal()
+            if result == "success":
+                print("Crystal picked up successfully.")
+            else:
+                print("No crystal here.")
+            self._show_status()
+        
+        # "status" → call player.get_status() and print "Score: <score> Hazards: <hazard_count>".
+        elif command == "status":
+            self._show_status()
+        
+        # "win" – handled in check_win_condition.
+        elif command == "win":
+            pass
+        
+        # Help command
+        elif command == "help":
+            print("\nAvailable commands:")
+            print("  move <direction>   - Move in a direction (north, south, east, west)")
+            print("  pick up tool      - Pick up the diagnostic tool")
+            print("  use tool          - Use the diagnostic tool on the droid")
+            print("  pick up crystal   - Pick up the energy crystal")
+            print("  status            - Show your current score and hazard count")
+            print("  help              - Show this help message")
+            print("  quit/exit         - Exit the game\n")
+        
+        # Quit command
+        elif command in ("quit", "exit"):
+            print("Thanks for playing!")
+            exit(0)
+        
+        # Anything else → invalid.
+        else:
+            print("Invalid command. Type 'help' for a list of commands.")
+    
+    def _show_status(self):
+        """Display the player's current status."""
+        print(f"\nStatus: {self.player.get_status()}")
+    
+    def check_win_condition(self):
+        """Check if player has won and add 30 points if so."""
+        # If all of these are true:
+        # - player.current_location is Docking Bay
+        # - player.has_crystal is True  
+        # - the last command was "win"
+        if (self.player.current_location == self.docking_bay and
+            self.player.has_crystal and 
+            self.last_command == "win"):
             
-        if (self.player.current_location.name.lower() == "docking bay" and 
-            "energy_crystal" in self.player.inventory):
-            return (True, "You place the crystal in the escape pod and blast off!\nYOU ESCAPED!")
+            # Then add 30 to player.score
+            self.player.score += 30
             
-        return (False, "")
+            # Print mission complete message
+            print(f"Mission complete! Final Score: {self.player.score} Total Hazards: {self.player.hazard_count}")
+            
+            return True
+        
+        return False
