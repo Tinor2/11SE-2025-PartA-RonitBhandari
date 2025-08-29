@@ -34,6 +34,21 @@
    - Hazard count displayed in status
    - Affects final score calculation
 
+### 2025-08-29 00:50 - Help Command & Docking Bay Hint Improvements
+
+#### Changes Made
+- Added fully functional `help` command to `GameController`.
+- Updated Docking Bay description and crystal pickup feedback to hint: *"Type 'win' to escape"*.
+- Removed obsolete Launch Pad location—map now strictly `Maintenance Tunnels` ⇄ `Docking Bay` per spec.
+- Introduced dynamic `win` entry in help once crystal is obtained.
+- Incremented mission-completion bonus (+30) in `_process_win`.
+
+#### Implementation-Plan Alignment
+- Checked off completed tasks in `IMPLEMENTATION_PLAN.md`:
+  - **Player**, **GameController**, **World setup**, **All core commands**.
+- Remaining items: automated tests (golden path & edge cases) and minor documentation polish.
+
+
 ### 2025-08-28 19:10 - Core Game Systems Implementation
 
 #### GameController Class

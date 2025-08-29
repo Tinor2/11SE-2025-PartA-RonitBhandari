@@ -3,33 +3,33 @@ Player module for Orbital Station Escape.
 
 This module contains the Player class which represents the player in the game.
 """
-from typing import List, Optional, Dict, Any
+from typing import Any  # 'Any' currently unused but kept if needed for type hints
 from location import Location
 from items import DiagnosticTool, EnergyCrystal
 
 
 class Player:
-    """Represents the player in the game.
-    
+    """Represents the player.
+
     Attributes:
-        current_location (Location): The player's current location.
-        inventory (Dict[str, Any]): Items the player is carrying.
+        current_location (Location): Where the player is.
+        has_tool (bool): Whether the player carries the diagnostic tool.
+        has_crystal (bool): Whether the player carries the energy crystal.
+        score (int): Current score.
+        hazard_count (int): Number of hazards encountered.
     """
     
-    def __init__(self, starting_location):
+    def __init__(self, starting_location: Location):
         """Initialize the player with a starting location.
         
         Args:
             starting_location: The initial Location object where the player begins.
         """
         self.current_location = starting_location
-        self.inventory = []
-        self.score = 0
-        self.hazards_encountered = 0
-        self.hazard_count = 0  # Track number of hazards encountered
         self.has_tool = False
         self.has_crystal = False
-        self.moved_this_turn = False
+        self.score = 0
+        self.hazard_count = 0
     
     def move(self, direction: str) -> str:
         """Attempt to move in a direction.
@@ -41,104 +41,83 @@ class Player:
             A message describing the result of the movement attempt.
         """
         direction = direction.lower()
-        
-        # Check if the direction is valid
+
         if direction not in self.current_location.exits:
             return "You can't go that way."
-        
-        # Check for droid blocking the way
+
+        # Droid hazard check (only east from Maintenance Tunnels in spec)
         if self.current_location.droid_present and direction == "east":
             self.hazard_count += 1
             return (
                 "The droid SHOVES you back! (+1 HAZARD)\n"
                 f"(SCORE: {self.score} | HAZARDS: {self.hazard_count})"
             )
-        
-        # Move to the new location
+
         self.current_location = self.current_location.exits[direction]
-        return f"You move {direction}."
+        return f"You enter the {self.current_location.name}.\n{self.get_status()}"
     
-    def pick_up_item(self, item_name: str) -> str:
-        """Attempt to pick up an item from the current location.
-        
-        Args:
-            item_name: The name of the item to pick up.
-            
+    # --- Item interactions ---
+    def pick_up_tool(self) -> str:
+        """Pick up the diagnostic tool if present.
+
         Returns:
-            A message describing the result of the pickup attempt.
+            str: Result message.
         """
-        item_name = item_name.lower()
-        
-        # Check for diagnostic tool
-        if "tool" in item_name and self.current_location.has_tool:
-            self.current_location.remove_tool()
-            self.inventory["diagnostic_tool"] = DiagnosticTool()
-            self.score += 10
-            return (
-                f"You grab the diagnostic tool. [+10]\n"
-                f"(SCORE: {self.score} | HAZARDS: {self.hazard_count})"
-            )
-            
-        # Check for energy crystal
-        if "crystal" in item_name and self.current_location.has_crystal:
-            self.current_location.remove_crystal()
-            self.inventory["energy_crystal"] = EnergyCrystal()
-            self.score += 50
-            return (
-                "The crystal vibrates in your palm. You drop to the ground as the gravity resets! [+50]\n"
-                f"(SCORE: {self.score} | HAZARDS: {self.hazard_count})"
-            )
-            
-        return "You don't see that here."
-    
-    def use_item(self, item_name: str) -> str:
-        """Attempt to use an item from the inventory.
-        
-        Args:
-            item_name: The name of the item to use.
-            
-        Returns:
-            A message describing the result of using the item.
-        """
-        item_name = item_name.lower()
-        
-        # Using the diagnostic tool on the droid
-        if "tool" in item_name and "diagnostic_tool" in self.inventory:
-            if self.current_location.droid_present:
-                self.current_location.set_droid_present(False)
-                self.has_used_tool = True
-                self.score += 20
-                return (
-                    "Droid reboots! It salutes and shuffles aside. [+20]\n"
-                    f"(SCORE: {self.score} | HAZARDS: {self.hazard_count})"
-                )
-            return "Nothing happens."
-            
-        return "You don't have that item."
-    
-    def get_status(self) -> str:
-        """Get the player's current status.
-        
-        Returns:
-            A string showing the current score and hazard count.
-        """
-        return f"(SCORE: {self.score} | HAZARDS: {self.hazard_count})"
-    
-    def has_won(self) -> bool:
-        """Check if the player has met the win conditions.
-        
-        Returns:
-            bool: True if the player has won, False otherwise.
-        """
+        if not self.current_location.has_tool:
+            return "There's no tool here to pick up."
+        self.current_location.remove_tool()
+        self.has_tool = True
+        self.score += 10
         return (
-            self.current_location.name.lower() == "docking bay"
-            and "energy_crystal" in self.inventory
+            "You grab the diagnostic tool. [+10]\n"
+            f"(SCORE: {self.score} | HAZARDS: {self.hazard_count})"
+        )
+            
+    
+    def use_tool_on_droid(self) -> str:
+        """Use the diagnostic tool on the droid if possible.
+
+        Returns:
+            str: Result message.
+        """
+        if not self.has_tool:
+            return "You don't have a tool to use."
+        if not self.current_location.droid_present:
+            return "There's nothing to use the tool on here."
+        self.current_location.set_droid_present(False)
+        self.score += 20
+        return (
+            "Droid reboots! It salutes and shuffles aside. [+20]\n"
+            f"(SCORE: {self.score} | HAZARDS: {self.hazard_count})"
         )
     
-    def get_inventory(self) -> List[str]:
-        """Get a list of items in the player's inventory.
-        
+    def pick_up_crystal(self) -> str:
+        """Pick up the energy crystal if present.
+
         Returns:
-            A list of item names in the inventory.
+            str: Result message.
         """
-        return list(self.inventory.keys())
+        if not self.current_location.has_crystal:
+            return "There's no crystal here to pick up."
+        self.current_location.remove_crystal()
+        self.has_crystal = True
+        self.score += 50
+        return (
+            "The crystal vibrates in your palm. You drop to the ground as the gravity resets! [+50]\n"
+            f"(SCORE: {self.score} | HAZARDS: {self.hazard_count})"
+        )
+    
+    def get_status(self) -> str:
+        """Return a formatted status string showing current score and hazards."""
+        return f"(SCORE: {self.score} | HAZARDS: {self.hazard_count})"
+
+    # Temporary method kept for compatibility with GameController; will be removed during refactor
+    def get_inventory(self):
+        """Return list of carried item names (non-spec). Will be removed soon."""
+        items = []
+        if self.has_tool:
+            items.append("Diagnostic Tool")
+        if self.has_crystal:
+            items.append("Energy Crystal")
+        return items
+    

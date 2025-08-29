@@ -1,94 +1,50 @@
 """
-Game items module.
+Items module for Orbital Station Escape.
 
-This module contains the base Item class and all item implementations.
+Contains the base StationItem class and its subclasses.
 """
 from abc import ABC, abstractmethod
-from typing import Optional
 
 
 class StationItem(ABC):
-    """Base class for all items in the game.
-    
-    Attributes:
-        _name (str): The name of the item.
-        _description (str): A description of the item.
-    """
+    """Base class for all items in the game."""
     
     def __init__(self, name: str, description: str):
-        """Initialize the item with a name and description.
-        Args:
-            name: The name of the item.
-            description: A description of the item.
-        """
+        """Initialize the item with name and description."""
         self._name = name
         self._description = description
     
-    @property
-    def name(self) -> str:
-        """
-        Returns:
-            The name of the item.
-        """
-        return self._name
-    
-    @property
-    def description(self) -> str:
-        """
-        Returns:
-            The description of the item.
-        """
-        return self._description
-    
     @abstractmethod
     def examine(self) -> str:
-        """Examine the item to get more information.  
-        Returns:
-            A detailed description of the item.
-        """
+        """Return a description of the item when examined."""
         pass
 
 
 class DiagnosticTool(StationItem):
-    """A tool used to repair the damaged maintenance droid."""
+    """A diagnostic tool used to repair maintenance droids."""
     
     def __init__(self):
-        """Initialize the diagnostic tool with default values."""
+        """Initialize the diagnostic tool."""
         super().__init__(
             name="Diagnostic Tool",
-            description="A handheld device with various probes and readouts."
+            description="A device for interfacing with maintenance droids."
         )
     
     def examine(self) -> str:
-        """Examine the diagnostic tool.
-        
-        Returns:
-            A description of the tool and its purpose.
-        """
-        return (
-            "This diagnostic tool seems designed to interface with maintenance droids. "
-            "It has several probes and a small display showing system diagnostics."
-        )
+        """Return a description of the tool."""
+        return "This diagnostic tool seems designed to interface with maintenance droids."
 
 
 class EnergyCrystal(StationItem):
-    """A volatile energy source needed to power the escape pod."""
+    """An energy crystal that powers the escape pod."""
     
     def __init__(self):
-        """Initialize the energy crystal with default values."""
+        """Initialize the energy crystal."""
         super().__init__(
             name="Energy Crystal",
             description="A glowing crystal pulsing with unstable energy."
         )
     
     def examine(self) -> str:
-        """Examine the energy crystal.
-        
-        Returns:
-            A description of the crystal's appearance and behavior.
-        """
-        return (
-            "The crystal pulses with an unstable, vibrant energy. It feels warm to the touch "
-            "and occasionally emits small sparks. This must be what powers the station's "
-            "critical systems."
-        )
+        """Return a description of the crystal."""
+        return "The crystal pulses with an unstable, vibrant energy."

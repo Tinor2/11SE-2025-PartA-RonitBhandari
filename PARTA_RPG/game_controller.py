@@ -20,7 +20,6 @@ class GameController:
         """Initialize the game controller and set up the initial game state."""
         self.game_over = False
         self.game_won = False
-        self.current_turn = 0
         self._initialize_game_world()
         
     def _get_status(self) -> str:
@@ -32,13 +31,11 @@ class GameController:
         
         Follows the exact locations and descriptions from the storyboard.
         """
-        # Initialize locations
+        # Initialize ONLY the two specified locations
         self.locations = {
             'maintenance_tunnels': Location(
                 name="MAINTENANCE TUNNELS",
-                description=(
-                    "Flickering lights reveal a sparking droid blocking the east tunnel."
-                ),
+                description="Flickering lights reveal a sparking droid blocking the east tunnel.",
                 has_tool=True,
                 droid_present=True
             ),
@@ -49,29 +46,19 @@ class GameController:
                     "The escape pod's hatch is lodged shut, thanks to the broken gravity generators."
                 ),
                 has_crystal=True
-            ),
-            'launch_pad': Location(
-                name="LAUNCH PAD",
-                description=(
-                    "The escape pod is ready to launch!"
-                )
             )
         }
         
-        # Set up initial location connections (east exit from docking bay will be added after crystal pickup)
+        # Set up bidirectional exits
         self.locations['maintenance_tunnels'].add_exit("east", self.locations['docking_bay'])
         self.locations['docking_bay'].add_exit("west", self.locations['maintenance_tunnels'])
-        
-        # Add hints
-        self.locations['maintenance_tunnels'].hint = "use tool to fix it"
-        self.locations['docking_bay'].hint = "Find a way to restore gravity"
-        
-        # Track if the crystal has been picked up
-        self.crystal_picked_up = False
         
         # Initialize player and droid
         self.player = Player(self.locations['maintenance_tunnels'])
         self.droid = DamagedMaintenanceDroid()
+
+        # Track crystal state for help display
+        self.crystal_picked = False
     
     def process_command(self, command: str) -> str:
         """Process a player command and return the game's response.
@@ -91,9 +78,6 @@ class GameController:
         # Handle movement commands
         if len(parts) == 2 and parts[0] == 'move' and parts[1] in ["north", "south", "east", "west"]:
             return self._process_movement(parts[1])
-        elif command in ["north", "south", "east", "west"]:
-            # For backward compatibility, but this should be removed eventually
-            return "Please use 'move <direction>' format.\nExample: 'move east'"
             
         # Handle specific commands
         if command == "pick up tool" or command == "pickup tool":
@@ -107,16 +91,10 @@ class GameController:
             
         if command == "status":
             return self._get_status()
-            
+
         if command == "help":
             return self._show_help()
-            
-        if command in ["inventory", "i"]:
-            return self._show_inventory()
-            
-        if command == "look":
-            return self.player.current_location.describe()
-            
+
         if command == "win":
             return self._process_win()
             
@@ -127,71 +105,8 @@ class GameController:
         return "I don't understand that command. Type 'help' for a list of commands."
     
     def _process_movement(self, direction: str) -> str:
-        """Process a movement command."""
-        current_location = self.player.current_location
-        
-        # Check if path is blocked by droid
-        if (direction == 'east' and 
-            hasattr(current_location, 'droid_present') and 
-            current_location.droid_present):
-            # Trigger hazard event
-            self.player.hazard_count += 1
-            return (
-                f"The droid SHOVES you back! (+1 HAZARD)\n"
-                f"(SCORE: {self.player.score} | HAZARDS: {self.player.hazard_count})"
-            )
-            
-        # Handle movement to Docking Bay from Maintenance Tunnels
-        if (direction == 'east' and 
-            current_location.name.upper() == 'MAINTENANCE TUNNELS' and 
-            not current_location.droid_present):
-            # Find the Docking Bay location
-            for location in self.locations.values():
-                if location.name.upper() == 'DOCKING BAY':
-                    self.player.current_location = location
-                    return (
-                        "You enter the DOCKING BAY.\n"
-                        f"(SCORE: {self.player.score} | HAZARDS: {self.player.hazard_count})"
-                    )
-                    
-        # Handle movement to Launch Pad from Docking Bay (only after getting crystal)
-        if (direction == 'east' and 
-            current_location.name.upper() == 'DOCKING BAY' and
-            self.crystal_picked_up):
-            # Find the Launch Pad location
-            for location in self.locations.values():
-                if location.name.upper() == 'LAUNCH PAD':
-                    self.player.current_location = location
-                    return (
-                        "You enter the LAUNCH PAD. The escape pod awaits!\n"
-                        "Type 'win' to launch and complete your mission.\n"
-                        f"(SCORE: {self.player.score} | HAZARDS: {self.player.hazard_count})"
-                    )
-                    
-        # Handle movement back to Docking Bay
-        if (direction == 'west' and 
-            current_location.name.upper() == 'LAUNCH PAD'):
-            # Find the Docking Bay location
-            for location in self.locations.values():
-                if location.name.upper() == 'DOCKING BAY':
-                    self.player.current_location = location
-                    return "You return to the DOCKING BAY."
-        
-        # Handle movement back to Maintenance Tunnels
-        if (direction == 'west' and 
-            current_location.name.upper() == 'DOCKING BAY'):
-            # Find the Maintenance Tunnels location
-            for location in self.locations.values():
-                if location.name.upper() == 'MAINTENANCE TUNNELS':
-                    self.player.current_location = location
-                    return "You return to the MAINTENANCE TUNNELS."
-        
-        # Handle invalid movement
-        if direction in current_location.exits:
-            self.player.current_location = current_location.exits[direction]
-            return f"You move {direction}."
-            
-        return "You can't go that way."
+        """Delegate movement handling to the Player class."""
+        return self.player.move(direction)
     
     def _process_pick_up_tool(self) -> str:
         """Handle picking up the diagnostic tool."""
@@ -226,87 +141,44 @@ class GameController:
         )
         
     def _process_pick_up_crystal(self) -> str:
-        """Handle picking up the energy crystal."""
-        if not hasattr(self.player.current_location, 'has_crystal') or not self.player.current_location.has_crystal:
-            return "There's no crystal here to pick up."
-            
-        self.player.score += 50
-        self.player.has_crystal = True
-        self.player.current_location.has_crystal = False
-        self.crystal_picked_up = True
-        
-        # Update location description and add exit to launch pad
+        """Handle picking up the energy crystal using Player method."""
+        self.crystal_picked = True
+        # Update Docking Bay description to signal mission completion possibility
         self.player.current_location.description = (
-            "The escape pod hatch glows green - Almost there"
+            "The escape pod hatch slides open, ready for launch. Type 'win' to escape!"
         )
-        self.locations['docking_bay'].add_exit("east", self.locations['launch_pad'])
-        self.locations['docking_bay'].hint = "Your exit is wide open!"
-        
-        return (
-            "The crystal vibrates in your palm. You drop to the ground as the gravity resets! [+50]\n"
-            f"(SCORE: {self.player.score} | HAZARDS: {self.player.hazard_count})"
-        )
-    
-    def _show_inventory(self) -> str:
-        """Get the player's current inventory.
-        
-        Returns:
-            A string listing the items in the player's inventory.
-        """
-        inventory = self.player.get_inventory()
-        if not inventory:
-            return "You're not carrying anything."
-        return "You are carrying: " + ", ".join(inventory).replace("_", " ").title()
-    
-    def _show_inventory(self) -> str:
-        """Show the player's inventory."""
-        items = []
-        if self.player.has_tool:
-            items.append("Diagnostic Tool")
-        if self.player.has_crystal:
-            items.append("Energy Crystal")
-            
-        if not items:
-            return "You're not carrying anything."
-            
-        return "You are carrying: " + ", ".join(items)
+        return self.player.pick_up_crystal() + "\n(The escape pod is now ready. Type 'win' to complete your mission!)"
     
     def _process_win(self) -> str:
-        """Handle the win command."""
-        if self.player.current_location.name.upper() != "LAUNCH PAD":
-            return "You can't win from here! You need to be at the launch pad."
-            
+        """Handle the win command when in Docking Bay with crystal."""
+        if self.player.current_location.name.upper() != "DOCKING BAY":
+            return "You can't win from here! You need to be at the Docking Bay."
         if not self.player.has_crystal:
             return "You need the energy crystal to power the escape pod!"
-            
         self.game_over = True
         self.game_won = True
+        self.player.score += 30  # mission completion bonus
         return (
-            "You place the crystal into the escape pod's power core. "
-            "The engines roar to life as the pod's systems come online.\n\n"
-            "🚀 MISSION COMPLETE!\n"
-            f"FINAL SCORE: {self.player.score + 30} (including 30-point bonus)\n"
+            " MISSION COMPLETE!\n"
+            f"FINAL SCORE: {self.player.score}\n"
             f"HAZARDS ENCOUNTERED: {self.player.hazard_count}\n"
             "\"Orbital Station saved. Well done, Engineer.\""
         )
         
     def _show_help(self) -> str:
         """Return a help message with available commands."""
-        help_text = """
-Available Commands:
-  move <direction> - Move in a direction (north, south, east, or west)
-  pick up tool / pickup tool - Pick up the diagnostic tool
-  use tool - Use the diagnostic tool on the droid
-  pick up crystal / pickup crystal - Pick up the energy crystal
-  status - Show your current score and hazard count
-  inventory/i - Show items in your inventory
-  look - Look around the current location
-  help - Show this help message
-  quit/exit - Quit the game
-"""
-        if self.player.current_location.name.upper() == "LAUNCH PAD" and self.player.has_crystal:
-            help_text += "  win - Launch the escape pod and win the game!\n"
-        return help_text
+        base = (
+            "Available Commands:\n"
+            "  move <direction> - Move north, south, east, or west\n"
+            "  pick up tool / pickup tool - Pick up the diagnostic tool\n"
+            "  use tool - Use the diagnostic tool on the droid\n"
+            "  pick up crystal / pickup crystal - Pick up the energy crystal\n"
+            "  status - Show score and hazards\n"
+        )
+        if self.crystal_picked:
+            base += "  win - Complete the mission\n"
+        base += "  quit/exit - Quit the game\n"
+        return base
     
     def check_game_state(self) -> Tuple[bool, str]:
         """Check if the game has been won or lost.
